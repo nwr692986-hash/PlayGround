@@ -1,0 +1,254 @@
+<!doctype html>
+<html lang="ar" dir="rtl">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, user-scalable=no" />
+  <meta name="theme-color" content="#0a0b0e" />
+  <title>SAN ARROYO — شوارع الشمس</title>
+  <link rel="icon" href="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 64 64'%3E%3Crect width='64' height='64' rx='10' fill='%2307090c'/%3E%3Ccircle cx='32' cy='32' r='17' fill='%23ffb703'/%3E%3C/svg%3E" />
+  <link rel="stylesheet" href="./style.css" />
+  <script type="importmap">
+    { "imports": { "three": "./vendor/three.module.js" } }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <canvas id="game"></canvas>
+
+    <div id="boot" class="boot">
+      <div class="boot-logo">SAN <span>ARROYO</span></div>
+      <div class="boot-sub">شوارع الشمس — يتم تجهيز المدينة</div>
+      <div class="boot-bar"><i id="bootBar"></i></div>
+      <div class="boot-tip">مدينة أصلية بالكامل — مبنية بالكود، بدون أصول من أي لعبة أخرى.</div>
+    </div>
+
+    <div id="startScreen" class="overlay start hidden">
+      <div class="start-bg"></div>
+      <div class="start-top">
+        <span class="tag">ORIGINAL OPEN WORLD</span>
+        <span class="tag dim">BUILD 1.0 // SUNSET</span>
+      </div>
+      <div class="start-main">
+        <div class="hero">
+          <div class="eyebrow">قصة حي • مطاردات • مودات</div>
+          <h1 class="logo">SAN<br /><span>ARROYO</span></h1>
+          <div class="sub-logo">شوارع الشمس</div>
+          <p class="blurb">عد إلى حيّك بعد غياب خمس سنوات. سيارات، شرطة، عصابات، وراديو لا يهدأ — ولعبة أصلية بالكامل مع مودات مدمجة من داخل المدينة.</p>
+          <div class="features">
+            <span>عالم مفتوح</span>
+            <span>قيادة حرة</span>
+            <span>5 مهام قصة</span>
+            <span>مود منيو</span>
+            <span>راديو حي</span>
+          </div>
+          <div class="start-actions">
+            <button id="playBtn" class="btn btn-play" aria-label="Play">PLAY</button>
+            <button id="continueBtn" class="btn btn-ghost hidden" aria-label="Continue">متابعة اللعب</button>
+          </div>
+          <div class="start-foot">
+            <span><b>WASD</b> حركة / قيادة</span>
+            <span><b>F</b> سيارة</span>
+            <span><b>E</b> مهمة</span>
+            <span><b>F3</b> مودات</span>
+            <span><b>Space</b> قفز</span>
+          </div>
+        </div>
+        <aside class="start-side">
+          <div class="side-card">
+            <div class="side-title">إحصاءات الحي</div>
+            <div class="side-row"><span>أحياء</span><b>7 × 7</b></div>
+            <div class="side-row"><span>مهام القصة</span><b>5</b></div>
+            <div class="side-row"><span>مودات قابلة للفتح</span><b>11</b></div>
+            <div class="side-row"><span>محطات راديو</span><b>3</b></div>
+          </div>
+          <div class="side-card hint">
+            <div class="side-title">نصيحة من الشارع</div>
+            <p>لا تطلق النار وسط السوق. النجوم بتتراكم بسرعة، والشرطة في سان أرويو لا تنام.</p>
+          </div>
+          <div class="legal">أصلية 100% — كل نموذج، مبنى، صوت، وموسيقى تم توليده لهذه اللعبة.</div>
+        </aside>
+      </div>
+    </div>
+
+    <div id="hud" class="hud hidden">
+      <div class="hud-top-right">
+        <div class="stat-card">
+          <div class="brand">SAN ARROYO <span>// SUN</span></div>
+          <div class="bar-row"><span>صحة</span><div class="bar"><i id="healthBar" class="health"></i></div><b id="healthNum">100</b></div>
+          <div class="bar-row"><span>دروع</span><div class="bar"><i id="armorBar" class="armor"></i></div><b id="armorNum">0</b></div>
+          <div class="cash-row">
+            <div id="cash" class="cash">$500</div>
+            <div id="modChips" class="chips">0 شرائح مود</div>
+          </div>
+          <div class="wanted-row">
+            <span class="wanted-label">المطلوب</span>
+            <div id="wantedStars" class="stars"><i>★</i><i>★</i><i>★</i><i>★</i><i>★</i></div>
+          </div>
+        </div>
+
+        <div class="map-card">
+          <div class="map-wrap">
+            <canvas id="minimap" width="220" height="220"></canvas>
+            <div class="map-north">N</div>
+            <div id="wantedBadge" class="wanted-badge">هادئ</div>
+          </div>
+          <div class="map-meta">
+            <div>
+              <div id="clock" class="clock">17:12</div>
+              <div id="district" class="district">حي الشمس</div>
+            </div>
+            <div class="radio-meta">
+              <div class="radio-label">RADIO</div>
+              <div id="radioName" class="radio-name">—</div>
+              <div id="radioEn" class="radio-en">غير متصل</div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <div id="missionPanel" class="mission-panel hidden">
+        <div class="mission-kicker">المهمة الحالية <span id="missionTag">STORY</span></div>
+        <div id="missionTitle" class="mission-title">أول جولة</div>
+        <div id="missionObjective" class="mission-objective">اسرق سيارة ووصلها للكراج</div>
+        <div class="mission-dist"><span id="missionDistance">—</span> متر</div>
+      </div>
+
+      <div id="locationBanner" class="location-banner hidden">
+        <div class="loc-en">SUNSET HEIGHTS</div>
+        <div class="loc-ar">حي الشمس</div>
+      </div>
+
+      <div class="hud-bottom-left">
+        <div id="weaponPanel" class="weapon-panel">
+          <div class="weapon-icon" id="weaponIcon">⌐</div>
+          <div class="weapon-info">
+            <div id="weaponName" class="weapon-name">مسدس</div>
+            <div id="weaponAmmo" class="weapon-ammo">12 / 60</div>
+          </div>
+          <div class="weapon-slots" id="weaponSlots">
+            <span data-slot="1">1</span><span data-slot="2">2</span><span data-slot="3">3</span>
+          </div>
+        </div>
+        <div id="speedo" class="speedo hidden">
+          <div id="speedNum" class="speed-num">0</div>
+          <div class="speed-unit">KM/H</div>
+          <div class="speed-bar"><i id="speedBar"></i></div>
+          <div id="gearLabel" class="gear-label">D</div>
+        </div>
+      </div>
+
+      <div id="controlsHint" class="controls-hint">
+        <span><b>WASD</b> حركة</span><span><b>Shift</b> عدو</span><span><b>Space</b> قفز</span><span><b>Click</b> إطلاق</span><span><b>F</b> سيارة</span>
+      </div>
+
+      <div id="interactPrompt" class="interact-prompt hidden"><b>E</b> ابدأ المهمة</div>
+
+      <div id="dialogue" class="dialogue hidden">
+        <div class="dialogue-head"><span id="dialogueSpeaker">رامي</span><span class="dialogue-line"></span></div>
+        <div id="dialogueText" class="dialogue-text"></div>
+      </div>
+
+      <div id="crosshair" class="crosshair">
+        <i class="ch-t"></i><i class="ch-b"></i><i class="ch-l"></i><i class="ch-r"></i><i class="ch-dot"></i>
+      </div>
+
+      <div id="toasts" class="toasts"></div>
+
+      <div id="missionBanner" class="mission-banner hidden">
+        <div class="mb-kicker">MISSION PASSED</div>
+        <div id="mbTitle" class="mb-title">أول جولة</div>
+        <div id="mbReward" class="mb-reward">+$300 · +1 MOD CHIP</div>
+      </div>
+
+      <div id="mobileControls" class="mobile-controls hidden">
+        <div id="joystick" class="joystick"><i id="joystickKnob"></i></div>
+        <div class="touch-buttons">
+          <button data-touch="sprint" class="touch small">عدو</button>
+          <button data-touch="enter" class="touch">F</button>
+          <button data-touch="jump" class="touch">↑</button>
+          <button data-touch="fire" class="touch fire">نار</button>
+        </div>
+      </div>
+    </div>
+
+    <div id="modsOverlay" class="overlay panel-overlay hidden">
+      <div class="panel mods-panel">
+        <div class="panel-head">
+          <div>
+            <div class="panel-kicker">NEIGHBORHOOD HACKER // F3</div>
+            <h2>مود منيو <span class="ar">سان أرويو</span></h2>
+          </div>
+          <div class="panel-head-right">
+            <div class="chip-wallet"><b id="modChipsPanel">0</b> شرائح مود</div>
+            <button id="closeMods" class="x-btn" aria-label="Close">×</button>
+          </div>
+        </div>
+        <div id="modsBody" class="mods-body"></div>
+        <div class="panel-foot">كل مود تفعله داخل اللعبة. الشرائح تُكسب من إتمام المهام.</div>
+      </div>
+    </div>
+
+    <div id="pauseOverlay" class="overlay panel-overlay hidden">
+      <div class="panel pause-panel">
+        <div class="panel-kicker">PAUSED</div>
+        <h2>إيقاف مؤقت</h2>
+        <div class="pause-actions">
+          <button id="resumeBtn" class="btn btn-play">متابعة</button>
+          <button id="pauseModsBtn" class="btn btn-ghost">مود منيو</button>
+          <button id="saveBtn" class="btn btn-ghost">حفظ اللعبة</button>
+          <button id="helpBtn" class="btn btn-ghost">التحكم</button>
+          <button id="restartBtn" class="btn btn-danger">بداية جديدة</button>
+        </div>
+        <div class="pause-note">التقدم يُحفظ تلقائياً كل 10 ثوانٍ. F3 يفتح المودات في أي وقت.</div>
+      </div>
+    </div>
+
+    <div id="helpOverlay" class="overlay panel-overlay hidden">
+      <div class="panel help-panel">
+        <div class="panel-kicker">CONTROLS</div>
+        <h2>التحكم</h2>
+        <div class="help-grid">
+          <div><b>W A S D</b><span>حركة / قيادة سيارة</span></div>
+          <div><b>Mouse</b><span>تدوير الكاميرا / التصويب</span></div>
+          <div><b>Left Click</b><span>إطلاق النار / لكمة</span></div>
+          <div><b>Shift</b><span>عدو / نيترو في السيارة</span></div>
+          <div><b>Space</b><span>قفز / فرامل يد</span></div>
+          <div><b>F</b><span>دخول وخروج من السيارة</span></div>
+          <div><b>E</b><span>بدء المهمة عند العلامة</span></div>
+          <div><b>1 / 2 / 3</b><span>تبديل السلاح</span></div>
+          <div><b>R</b><span>تعمير السلاح</span></div>
+          <div><b>V</b><span>تغيير محطة الراديو</span></div>
+          <div><b>H</b><span>بوق السيارة</span></div>
+          <div><b>F3</b><span>مود منيو</span></div>
+          <div><b>Esc</b><span>إيقاف مؤقت</span></div>
+          <div><b>F9</b><span>حفظ سريع</span></div>
+        </div>
+        <button id="closeHelp" class="btn btn-play">تم</button>
+      </div>
+    </div>
+
+    <div id="wastedOverlay" class="overlay wasted hidden">
+      <div class="wasted-inner">
+        <div class="wasted-title">WASTED</div>
+        <div class="wasted-sub">تم نقلك إلى المستشفى المركزي...</div>
+      </div>
+    </div>
+
+    <div id="storyOverlay" class="overlay story hidden">
+      <div class="story-card">
+        <div class="panel-kicker">STORY COMPLETE</div>
+        <h2>شوارع الشمس صارت لك</h2>
+        <p>أكملت قصة سان أرويو. المدينة الآن مفتوحة بالكامل: كل المودات مفتوحة، والشرطة ما زالت تتذكر وجهك.</p>
+        <div class="story-stats" id="storyStats"></div>
+        <button id="storyContinue" class="btn btn-play">واصل اللعب الحر</button>
+      </div>
+    </div>
+
+    <div id="errorOverlay" class="overlay error hidden">
+      <div class="panel"><h2>تعذر تشغيل المشهد</h2><p id="errorText"></p></div>
+    </div>
+  </div>
+
+  <script type="module" src="./src/main.js"></script>
+</body>
+</html>
